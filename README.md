@@ -1,6 +1,6 @@
 # algorithm-implementations
 
-This repository contains implementation of the following algorithms in C and java
+This repository contains implementation of the following algorithms in C and JAVA
 
 - C
   - Searching
