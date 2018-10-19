@@ -16,5 +16,5 @@ This repository contains implementation of the following algorithms in C and JAV
 
   - Knapsack Problem
 
-- java
+- JAVA
   - Huffman Coding
