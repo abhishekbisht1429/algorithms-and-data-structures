@@ -12,6 +12,7 @@ This repository contains implementation of the following algorithms in C and JAV
     - Selection Sort
     - Bubble Sort
     - Merge Sort
+    - Heap Sort
     - Counting Sort
 
   - Knapsack Problem
