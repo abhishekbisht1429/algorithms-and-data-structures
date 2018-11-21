@@ -15,6 +15,10 @@ This repository contains implementation of the following algorithms in C and JAV
     - Heap Sort
     - Counting Sort
 
+  - Graph Traversal
+    - Breadth First Traversal (BFS)
+    - Depth First Traversal (DFS)
+
   - Knapsack Problem
 
 - JAVA
