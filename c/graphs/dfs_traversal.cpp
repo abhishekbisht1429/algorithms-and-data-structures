@@ -3,6 +3,7 @@
 
 using namespace std;
 
+//structre to represent Graph
 typedef struct Graph {
   int v;
   list<int>* adj;
@@ -12,6 +13,7 @@ typedef struct Graph {
     adj = new list<int>[v];
   }
 
+  //function to add new edge
   void addEdge(int u,int v) {
     if(u>=this->v || v>=this->v) {
       cout<<"Invalid Edge"<<endl;
@@ -35,17 +37,25 @@ void Graph::display_graph() {
 }
 
 void Graph::dfs_traversal(int source,list<int>* solVec) {
+  //bool array to store the visited nodes
   bool* visited = new bool[v];
   for(int i=0;i<v;++i) {
     visited[i] = false;
   }
 
   list<int> stack;
+  //add source to the stack
   stack.push_front(source);
+  visited[source] = true;
 
+  //travrse the graph
   while(!stack.empty()) {
+    //pop the first node from the stack
     int current = stack.front();
     stack.pop_front();
+
+    /*add the nodes which are not visited and are adjacent to
+      the popped node to the stack */
     list<int>::iterator itr;
     for(itr = adj[current].begin();itr!=adj[current].end();++itr) {
       if(!visited[*itr]) {
@@ -53,9 +63,12 @@ void Graph::dfs_traversal(int source,list<int>* solVec) {
         stack.push_front(*itr);
       }
     }
+    //add the traversed node to the solution vector
     solVec->push_back(current);
   }
 }
+
+//main program for the usage
 int main() {
   Graph g(7);
   g.addEdge(0,1);

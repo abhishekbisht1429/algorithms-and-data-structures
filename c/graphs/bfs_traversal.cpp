@@ -3,6 +3,7 @@
 
 using namespace std;
 
+//strucutre to represent Graph
 typedef struct Graph {
   list<int> *adj;
   int v;
@@ -26,16 +27,21 @@ typedef struct Graph {
 
 void Graph::bfs(int source,list<int>* solVec) {
   list<int> queue;
+  //bool array to store visited nodes
   bool* visited = new bool[v];
   for(int i=0;i<v;++i)
     visited[i] = false;
 
   //add source element to the queue
   queue.push_back(source);
-
+  visited[source] = true;
   while(!queue.empty()) {
+    //remove the first node from the queue
     int current = queue.front();
     queue.pop_front();
+
+    /*Add those nodes which are adjacent to the removed node and are not visited, to
+      the stack */
     list<int>::iterator i;
     for(i = adj[current].begin();i!=adj[current].end();++i) {
       if(!visited[*i]) {
@@ -47,6 +53,7 @@ void Graph::bfs(int source,list<int>* solVec) {
   }
 }
 
+//Function to display the Adjacency list - though it is not necessary for traversal
 void Graph::display_graph() {
   for(int i=0;i<v;++i) {
     cout<<i<<"->";
@@ -58,6 +65,7 @@ void Graph::display_graph() {
   }
 }
 
+//main function for the usage
 int main() {
   Graph g(7);
   g.addEdge(0,1);
