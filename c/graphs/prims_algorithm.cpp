@@ -89,8 +89,27 @@ void printMST(int* parentSet,int n) {
 }
 
 int main() {
-  int v = 8;
-  Graph graph(v,false);
+  int n;
+  cout<<"Enter the number of vertices\n"<<endl;
+  cin>>n;
+  Graph graph(n,false);
+
+  int u,v,w;
+  cout<<"Enter the Edges in the form (u v w). all the vertices must be connected"<<
+        "via some edge\n(Enter -1 to stop)\n";
+  while(true) {
+    cin>>u;
+    if(u==-1)
+      break;
+    cin>>v;
+    cin>>w;
+    cin.ignore(numeric_limits<int>::max(),'\n');
+    graph.addEdge(u,v,w);
+    cout<<"added\n\n";
+  }
+
+  /*int n = 8;
+  Graph graph(8,false);
   graph.addEdge(0,1,14);
   graph.addEdge(0,2,6);
   graph.addEdge(0,4,5);
@@ -98,15 +117,14 @@ int main() {
   graph.addEdge(1,3,3);
   graph.addEdge(2,4,4);
   graph.addEdge(3,5,8);
-  graph.addEdge(4,6,9);
   graph.addEdge(4,5,2);
-  graph.addEdge(5,7,15);
-
+  graph.addEdge(4,6,9);
+  graph.addEdge(5,7,15);*/
 
   graph.displayGraph();
 
-  int* parentSet = new int[v];
+  int* parentSet = new int[n];
   graph.primsMst(parentSet);
 
-  printMST(parentSet,v);
+  printMST(parentSet,n);
 }
