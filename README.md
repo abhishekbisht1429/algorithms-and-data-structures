@@ -19,6 +19,9 @@ This repository contains implementation of the following algorithms in C and JAV
     - Breadth First Traversal (BFS)
     - Depth First Traversal (DFS)
 
+  - Minimum Spanning Tree (MST) algorithms
+    - Prim's Algorithm
+
   - Knapsack Problem
 
 - JAVA
