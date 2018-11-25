@@ -21,6 +21,7 @@ This repository contains implementation of the following algorithms in C and JAV
 
   - Minimum Spanning Tree (MST) algorithms
     - Prim's Algorithm
+    - Kruskal's Algorithm
 
   - Knapsack Problem
 

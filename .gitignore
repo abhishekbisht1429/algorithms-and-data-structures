@@ -2,3 +2,4 @@
 **/*.class
 
 c/sorting_algorithms/quick_sort.c
+c/other/*.*
