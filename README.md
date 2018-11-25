@@ -2,7 +2,7 @@
 
 This repository contains implementation of the following algorithms in C and JAVA
 
-- C
+- C/C++
   - Searching
     - Linear Search
     - Binary Search
@@ -20,5 +20,8 @@ This repository contains implementation of the following algorithms in C and JAV
     - Prim's Algorithm
     - Kruskal's Algorithm
   - Knapsack Problem
+  - Activity Selection Problem(path - coding_problems/c/activity_selection.c)
+  - Classroom Distribution Problem(coding_problems/c/classroom_distributer.c)
 - JAVA
   - Huffman Coding
+  - Least common Subsequence Problem (coding_problems/java/lcsubsequence)
