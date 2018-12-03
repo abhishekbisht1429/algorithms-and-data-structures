@@ -19,10 +19,11 @@ This repository contains implementation of the following algorithms in C and JAV
   - Greedy algorithms
     - Single Source Shortest Path
       - Dijkastra's Algorithm
+      - Bellman-Ford's Algorithm
     - Minimum Spanning Tree (MST) algorithms
       - Prim's Algorithm
       - Kruskal's Algorithm
-  
+
   - Knapsack Problem(using greedy approach)
   - Knapsack Problem(using Dynamic Programming)
   - Activity Selection Problem(*coding_problems/c/activity_selection.c*)

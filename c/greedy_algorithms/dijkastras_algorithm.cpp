@@ -36,6 +36,12 @@ void Graph::displayGraph() {
     cout<<endl;
   }
 }
+int sum(int d1,int d2) {
+  if(d1==INF || d2==INF)
+    return INF;
+
+  return d1+d2;
+}
 
 void Graph::dijkastrasSpt(int source,int* dist,int* parentSet) {
   bool* spt = new bool[v];
@@ -56,7 +62,7 @@ void Graph::dijkastrasSpt(int source,int* dist,int* parentSet) {
     //loop to traverse elements adjacent to min
     for(int j=0;j<v;++j) {
       if(!spt[j] && graph[min][j]!=0) {
-        int d = dist[min] + graph[min][j]; //new distance from source vertex when min in included
+        int d = sum(dist[min],graph[min][j]); //new distance from source vertex when min in included
         if(d<dist[j]) { //if new distance is less than older update.
           dist[j] = d;
           parentSet[j] = min;
