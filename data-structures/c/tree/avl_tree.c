@@ -160,6 +160,7 @@ static NODE *delete(NODE *root, int key) {
             root->right = delete(root->right, succ->key);
         }
 
+        /* this shoudld be outside else */
         if(root!=NULL) {
             root->height = 1 + max(height(root->left), height(root->right));
             int bf_root = balance_factor(root);
