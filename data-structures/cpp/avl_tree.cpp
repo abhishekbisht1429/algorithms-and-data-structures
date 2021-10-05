@@ -8,8 +8,15 @@ struct node {
     int freq;
     node<T> *left;
     node<T> *right;
+    node<T> *pred;
+    node<T> *succ;
     int height;
-    node(T key): key(key), freq(1), left(nullptr), right(nullptr), height(1) {}
+    node(T key): key(key), freq(1), 
+                left(nullptr), 
+                right(nullptr), 
+                height(1),
+                pred(nullptr),
+                succ(nullptr) {}
 };
 
 template<typename T, typename Compare>
@@ -59,12 +66,37 @@ class avl_tree {
         if(root == nullptr)
             return new node<T>(key);
         
-        if(!comp(key, root->key) && !comp(root->key, key))
+        if(!comp(key, root->key) && !comp(root->key, key)) {
             ++root->freq;
-        else if(comp(key, root->key))
-            root->left = insert(root->left, key);
-        else
-            root->right = insert(root->right, key);
+        } else if(comp(key, root->key)) {
+            if(root->left == nullptr) {
+                node<T> *new_node = new node<T>(key);
+                /* set the pred and succ ptrs*/
+                new_node->succ = root;
+                new_node->pred = root->pred;
+                if(root->pred != nullptr)
+                    root->pred->succ = new_node;
+                root->pred = new_node;
+
+                root->left = new_node;
+            } else {
+                root->left = insert(root->left, key);
+            }
+        } else {
+            if(root->right == nullptr) {
+                node<T> *new_node = new node<T>(key);
+                /* set the pred and succ ptrs*/
+                new_node->pred = root;
+                new_node->succ = root->succ;
+                if(root->succ != nullptr)
+                    root->succ->pred = new_node;
+                root->succ = new_node;
+
+                root->right = new_node;
+            } else {
+                root->right = insert(root->right, key);
+            }
+        }
         
         root->height = max(height(root->left), height(root->right)) + 1;
 
@@ -133,22 +165,28 @@ class avl_tree {
             root->left = erase(root->left, key);
         } else if(comp(root->key, key)) {
             root->right = erase(root->right, key);
-        } else if(root->freq > 1) {
-            --root->freq;
         } else {
-            if(root->right == nullptr) {
-                node<T> *temp = root->left;
-                delete root;
-                root = temp;
-            } else if(root->left == nullptr) {
-                node<T> *temp = root->right;
-                delete root;
-                root = temp;
+            if(root->left == nullptr || root->right == nullptr) {
+                /* update pred and succ ptrs */
+                if(root->succ != nullptr)
+                    root->succ->pred = root->pred;
+                if(root->pred != nullptr)
+                    root->pred->succ = root->succ;
+                
+                if(root->right == nullptr) {
+                    node<T> *temp = root->left;
+                    delete root;
+                    root = temp;
+                } else  {
+                    node<T> *temp = root->right;
+                    delete root;
+                    root = temp;
+                }
             } else {
-                node<T> *succ = minVal(root->right);
-                root->key = succ->key;
-                root->freq = succ->freq;
-                root->right = erase(root->right, succ->key);
+                // node<T> *succ = minVal(root->right);
+                root->key = root->succ->key;
+                root->freq = root->succ->freq;
+                root->right = erase(root->right, root->succ->key);
             }
         }
             
@@ -272,24 +310,42 @@ class avl_tree {
             return def_val;
     }
 
-    node<T> *kth_largest(node<T> *root, int k) {
-        if(root == nullptr)
-            return nullptr;
-        node<T> *temp = kth_largest(root->right, k);
-        cout<<k<<" "<<root->key<<"\n";
-        --k;
-        if(k<1)
-            return temp;
-        return kth_largest(root->left, k);
-    }
-
     public:T kth_largest(int k, T def_val) {
-        node<T> *temp = kth_largest(root, k);
-        if(temp == nullptr)
+        node<T> *temp = maxVal(root);
+        while(temp!=nullptr && k>1) {
+            temp = temp->pred;
+            --k;
+        }
+        if(k>1)
             return def_val;
         return temp->key;
     }
 
+    public:T closest(T key, T def_val) {
+        node<T> *lb = lower_bound(root, key);
+        if(lb == nullptr)
+            return def_val;
+        node<T> *lb_pred = lb->pred;
+        if(lb_pred != nullptr)
+            if(key - lb_pred->key < lb->key - key)
+                return lb_pred->key;
+        return lb->key;
+    }
+
+    public:int count_in_range(T lo, T hi) {
+        node<T> *lo_lb = lower_bound(root, lo);
+        node<T> *hi_lb = lower_bound(root, hi);
+
+        int count = 0;
+        while(lo_lb != hi_lb) {
+            ++count;
+            lo_lb = lo_lb->succ;
+        }
+        if(hi_lb != nullptr && hi == hi_lb->key)
+            ++count;
+        
+        return count;
+    }
 
 
     void inorder_traversal(node<T> *root) {
@@ -302,6 +358,16 @@ class avl_tree {
     
     public:void inorder_traversal() {
         inorder_traversal(this->root);
+        cout<<"\n";
+    }
+
+    public:void inorder_traversal2() {
+        node<T> *min_val = minVal(root);
+        node<T> *temp = min_val;
+        while(temp!=nullptr) {
+            cout<<temp->key<<" ";
+            temp = temp->succ;
+        }
         cout<<"\n";
     }
 };
@@ -347,6 +413,7 @@ int main() {
     tree.insert(24);
     cout<<"reinserted deleted values\n";
     tree.inorder_traversal();
+    tree.inorder_traversal2();
 
     cout<<"contains test\n";
     cout<<tree.contains(3)<<"\n";
@@ -395,4 +462,44 @@ int main() {
 
     cout<<"kth largest testing\n";
     cout<<tree.kth_largest(1, -111)<<"\n";
+    cout<<tree.kth_largest(3, -111)<<"\n";
+
+    cout<<"Testing pred succ pointers\n";
+    avl_tree<int, less<int>> tree1;
+    tree1.insert(1);
+    tree1.insert(21);
+    tree1.insert(13);
+    tree1.insert(42);
+    tree1.insert(-11);
+    tree1.insert(-35);
+    tree1.insert(34);
+    tree1.insert(20);
+
+    tree1.inorder_traversal();
+    tree1.inorder_traversal2();
+
+    tree1.insert(22);
+    tree1.inorder_traversal2();
+
+    cout<<"deletion testing\n";
+    tree1.erase(13);
+    tree1.inorder_traversal2();
+    tree1.erase(1);
+    tree1.inorder_traversal2();
+    tree1.erase(22);
+    tree1.inorder_traversal2();
+    tree1.erase(42);
+    tree1.inorder_traversal2();
+
+    cout<<"Testing closest element\n";
+    cout<<tree1.closest(3, -111)<<"\n";
+    cout<<tree1.closest(10, -111)<<"\n";
+    cout<<tree1.closest(20, -111)<<"\n";
+    cout<<tree1.closest(25, -111)<<"\n";
+
+    cout<<"count in range testing\n";
+    cout<<tree1.count_in_range(-40, 20)<<"\n";
+    cout<<tree1.count_in_range(1, 20)<<"\n";
+    cout<<tree1.count_in_range(20, 21)<<"\n";
+    cout<<tree1.count_in_range(20, 40)<<"\n";
 }
