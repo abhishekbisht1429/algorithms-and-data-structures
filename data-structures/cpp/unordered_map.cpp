@@ -176,7 +176,7 @@ template<> class _hash<string> : public _hash_base {
     public:
     uint32_t operator()(string str) {
         const char *key = str.data();
-        return murmurHash3_32(key, sizeof(char), seed()) & (len()-1);
+        return murmurHash3_32(key, sizeof(char)*str.size(), seed()) & (len()-1);
     }
 };
 
