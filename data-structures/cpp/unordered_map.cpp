@@ -494,11 +494,11 @@ class unordered_map {
 
 };
 
-int distinct_element_count(int *arr, int n, int k) {
+void distinct_element_count(int *arr, int n, int k, int **out) {
     unordered_map<int, int> freq_map;
     for(int i=0; i<k; ++i)
         ++freq_map[arr[i]];
-    int total_count = freq_map.size();
+    (*out)[0] = freq_map.size();
     for(int i=k; i<n; ++i) {
         /* remove (i-k)th element */
         if(freq_map[arr[i-k]] == 1)
@@ -509,9 +509,8 @@ int distinct_element_count(int *arr, int n, int k) {
         /* add ith element */
         ++freq_map[arr[i]];
 
-        total_count += freq_map.size();
+        (*out)[i-k+1] = freq_map.size();
     }
-    return total_count;
 }
 
 int main() {
@@ -631,7 +630,14 @@ int main() {
     cout<<umapSh[4]<<"\n";
 
     cout<<"Distinct element count testing\n";
-    int arr1[] = {2, 1, 2, 3, 2, 1, 4, 5};
-    cout<<distinct_element_count(arr1, sizeof(arr1)/sizeof(arr1[0]), 5)<<"\n";
+    // int arr1[] = {2, 1, 2, 3, 2, 1, 4, 5};
+    int arr1[] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int n = sizeof(arr1)/sizeof(arr1[0]);
+    int k = 5;
+    int *count = new int[n-k+1];
+    distinct_element_count(arr1, n, k, &count);
+    for(int i=0; i<n-k+1; ++i)
+        cout<<count[i]<<" ";
+    cout<<"\n";
     return 0;
 }
