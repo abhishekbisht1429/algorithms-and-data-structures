@@ -410,7 +410,7 @@ class unordered_map {
 
     /* call this function everytime the container size is increased */
     void rehash() {
-        cout<<"rehashing\n";
+        // cout<<"rehashing\n";
         size_t new_bc = 2 * _bc;
         bucket<K, V> *new_container = bucketAllocator.allocate(new_bc);
 
@@ -493,6 +493,26 @@ class unordered_map {
     }
 
 };
+
+int distinct_element_count(int *arr, int n, int k) {
+    unordered_map<int, int> freq_map;
+    for(int i=0; i<k; ++i)
+        ++freq_map[arr[i]];
+    int total_count = freq_map.size();
+    for(int i=k; i<n; ++i) {
+        /* remove (i-k)th element */
+        if(freq_map[arr[i-k]] == 1)
+            freq_map.erase(arr[i-k]);
+        else
+            --freq_map[arr[i-k]];
+        
+        /* add ith element */
+        ++freq_map[arr[i]];
+
+        total_count += freq_map.size();
+    }
+    return total_count;
+}
 
 int main() {
     unordered_map<int, int> umap;
@@ -609,5 +629,9 @@ int main() {
     cout<<umapSh[1]<<"\n";
     cout<<umapSh[2]<<"\n";
     cout<<umapSh[4]<<"\n";
+
+    cout<<"Distinct element count testing\n";
+    int arr1[] = {2, 1, 2, 3, 2, 1, 4, 5};
+    cout<<distinct_element_count(arr1, sizeof(arr1)/sizeof(arr1[0]), 5)<<"\n";
     return 0;
 }
