@@ -4,3 +4,4 @@
 c/other/*.*
 **/test/**
 **/.vscode/**
+**/.test/**
