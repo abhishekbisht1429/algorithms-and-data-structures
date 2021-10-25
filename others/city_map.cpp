@@ -2,7 +2,6 @@
 #include<fstream>
 #include<chrono>
 #include<limits>
-#include<queue>
 
 using namespace std;
 
@@ -14,8 +13,7 @@ class _vec {
     size_t cap;
     size_t _size;
 
-    void grow() {
-        size_t new_cap = cap + cap;
+    void grow(size_t new_cap) {
         T *new_container = new T[new_cap];
         for(int i=0; i<_size; ++i)
             new_container[i] = container[i];
@@ -88,13 +86,18 @@ class _vec {
         }
     }
 
+    void reserve(size_t cap) {
+        if(cap > this->cap)
+            grow(cap);
+    }
+
     ~_vec() {
         delete[] container;
     }
 
     void push_back(T val) {
         if(_size == cap)
-            grow();
+            grow(2 * cap);
         container[_size++] = val;
     }
 
@@ -119,12 +122,94 @@ class _vec {
     }
 };
 
+template<typename T>
+class _pq {
+    size_t cap;
+    size_t _size;
+    _vec<T> container;
+
+    void heapify_up(size_t node) {
+        if(node == 0)
+            return;
+        
+        int p = (node-1)/2;
+        if(container[node] < container[p]) {
+            swap(container[node], container[p]);
+            heapify_up(p);
+        }
+    }
+
+    void heapify_down(size_t node) {
+        if(node >= _size)
+            return;
+        int l = 2*node+1;
+        int r = 2*node+2;
+        int c = 0;
+        if(l<_size && r<_size) {
+            if(container[l] < container[r] && container[l] < container[node])
+                c = 1;
+            else if(container[r] < container[node])
+                c = 2;
+        } else if(l < _size && container[l] < container[node]) {
+            c = 1;
+        } else if(r < _size && container[r] < container[node]) {
+            c = 2;
+        }
+
+        if(c == 1) {
+            swap(container[node], container[l]);
+            heapify_down(l);
+        } else if(c == 2) {
+            swap(container[node], container[r]);
+            heapify_down(r);
+        }
+    }
+
+    public:
+    _pq(size_t cap) {
+        this->cap = cap;
+        container.reserve(cap);
+        this->_size = 0;
+    }
+
+    void push(T val) {
+        if(_size == cap)
+            return;
+        
+        container[_size] = val;
+        heapify_up(_size++);
+    }
+
+    /* undefined behaviour if size is 0 */
+    T front() {
+        return container[0];
+    }
+
+    void pop() {
+        swap(container[0], container[_size-1]);
+        --_size;
+        heapify_down(0);
+    }
+
+    bool empty() {
+        return _size == 0;
+    }
+
+    size_t size() {
+        return _size;
+    }
+};
+
 class graph {
     struct edge {
         int v;
         int w;
         edge() {}
         edge(int v, int w):v(v), w(w) {}
+
+        bool operator<(edge e) {
+            return this->w < e.w;
+        }
     };
 
     _vec<_vec<edge>> adj_list;
@@ -176,35 +261,36 @@ class graph {
 
 _vec<string> dijkstra_sssp(graph &g, int st) {
     int n = g.order();
-    // cout<<n<<"\n";
     int inf = numeric_limits<int>::max();
     _vec<bool> visited(n);
     _vec<int> dist(n, inf);
     _vec<int> p(n, -1);
-
-    queue<int> q;
-    q.push(st);
     dist[st] = 0;
-    while(!q.empty()) {
-        int u = q.front();
-        q.pop();
 
-        /* relax all edges of u */
+    _pq<pair<int, int>> pq(n);
+    pq.push({dist[st], st});
+    
+    /* start main algo */
+    while(!pq.empty()) {
+        int u = pq.front().second;
+        pq.pop();
+        
+        /* relax all adjacent edges of u */
         for(int i=0; i<g[u].size(); ++i) {
             int v = g[u][i].v;
             int w = g[u][i].w;
 
-            /* relax edges */
+            /* relax edge */
             if(w+dist[u] < dist[v]) {
                 dist[v] = w + dist[u];
                 p[v] = u;
-            } else if(w+dist[u] == dist[v] && u < p[v]) {
+            } else if(w+dist[u] == dist[v] && to_string(u) < to_string(p[v])) {
                     p[v] = u;
             }
             
             /* push into queue */
             if(!visited[v])
-                q.push(v);
+                pq.push({dist[v], v});
         }
         visited[u] = true;
     }
@@ -237,7 +323,6 @@ int main() {
     auto _start = chrono::high_resolution_clock::now();
     #endif
     /* ######################CODE_START################################ */
-
     int n, m;
     cin>>n>>m;
     graph g(n);
