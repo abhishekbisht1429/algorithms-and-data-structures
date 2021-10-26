@@ -2,6 +2,8 @@
 #include<fstream>
 #include<chrono>
 #include<limits>
+#include<stack>
+#include<vector>
 
 using namespace std;
 
@@ -9,9 +11,9 @@ using namespace std;
 
 template<typename T>
 class _vec {
-    T *container;
-    size_t cap;
-    size_t _size;
+    T *container = nullptr;
+    size_t cap = 0;
+    size_t _size = 0;
 
     void grow(size_t new_cap) {
         T *new_container = new T[new_cap];
@@ -50,7 +52,7 @@ class _vec {
     _vec(size_t size) {
         this->_size = size;
         this->cap = size + size/2;
-        container = new T[cap];
+        container = new T[cap]();
     }
 
     _vec(size_t size, T def):_vec(size) {
@@ -60,21 +62,26 @@ class _vec {
 
     _vec() {
         this->cap = 8;
-        this->container = new T[cap];
+        this->container = new T[cap]();
         this->_size = 0;
     }
 
     /* copy constructor */
     _vec(const _vec<T> &vec) {
+        this->cap = 8;
+        this->container = new T[8]();
         *this = vec;
     }
 
     void operator=(const _vec<T> &vec) {
-        this->cap = vec.cap;
-        this->container = new T[this->cap];
-        this->_size = vec._size;
-        for(int i=0; i<_size; ++i)
-            this->container[i] = vec.container[i];
+        this->_size = 0;
+        for(int i=0; i<vec._size; ++i) {
+            this->push_back(vec.container[i]);
+        }
+    }
+
+    ~_vec() {
+        delete[] container;
     }
 
     void resize(size_t sz, T def) {
@@ -91,10 +98,6 @@ class _vec {
             grow(cap);
     }
 
-    ~_vec() {
-        delete[] container;
-    }
-
     void push_back(T val) {
         if(_size == cap)
             grow(2 * cap);
@@ -102,7 +105,7 @@ class _vec {
     }
 
     void pop_back() {
-        _size = min((size_t)0, _size-1);
+        _size = max((size_t)0, _size-1);
     }
 
     T &operator[](int i) {
@@ -119,6 +122,12 @@ class _vec {
 
     void sort() {
         quick_sort(container, 0, _size-1);
+    }
+
+    void display() {
+        for(int i=0; i<_size; ++i)
+            cout<<container[i]<<" ";
+        cout<<"\n";
     }
 };
 
@@ -310,6 +319,102 @@ _vec<string> dijkstra_sssp(graph &g, int st) {
     return paths;
 }
 
+void all_path_from_util(graph &g, _vec<pair<int, string>> &paths, _vec<bool> &visited, int u, _vec<int> &path) {
+    if(visited[u])
+        return;
+    visited[u] = true;
+    path.push_back(u);
+
+    /* convert path to string and calculate dist */
+    string str = "";
+    int dist = 0;
+    for(int i=0; i<path.size(); ++i) {
+        str += " "+to_string(path[i]);
+        
+        /* calculate dist */
+        if(i+1 < path.size()) {
+            int u = path[i];
+            /* search in adj list */
+            for(int j=0; j<g[path[i]].size(); ++j) {
+                int v = g[u][j].v;
+                int w = g[u][j].w;
+                if(v == path[i+1]) {
+                    dist += w;
+                    break;
+                }
+            }
+        }
+    }
+    paths.push_back({dist, str.substr(1)});
+
+    /* visit adjacent nodes */
+    for(int i=0; i<g[u].size(); ++i) {
+        int v = g[u][i].v;
+        all_path_from_util(g, paths, visited, g[u][i].v, path);
+    }
+    path.pop_back();
+    visited[u] = false;
+}
+
+_vec<pair<int, string>> all_path_from(graph &g, int u) {
+    int n = g.order();
+    _vec<pair<int, string>> paths;
+    _vec<bool> visited(n, false);
+    _vec<int> path;
+
+    all_path_from_util(g, paths, visited, u, path);
+
+    return paths;
+}
+
+_vec<string> k_shortest_path(graph &g, int k) {
+    int n = g.order();
+    _vec<pair<int, string>> total_paths;
+    for(int i=0; i<n; ++i) {
+        _vec<pair<int, string>> paths = all_path_from(g, i);
+        for(int i=0; i<paths.size(); ++i)
+            total_paths.push_back(paths[i]);
+    }
+
+    _vec<pair<int, string>> total_unique_paths;
+    
+    /* remove duplicate paths and 0 length paths */
+    for(int i=0; i<total_paths.size(); ++i) {
+        int d1 = total_paths[i].first;
+        string p1 = total_paths[i].second;
+
+        /* exclude 0 length paths */
+        if(d1 == 0) continue;
+
+        bool present = false;
+        /* check with every path in total_unique_paths */
+        for(int j=0; j<total_unique_paths.size(); ++j) {
+            int d2 = total_unique_paths[j].first;
+            string p2 = total_unique_paths[j].second;
+            if(d1 == d2 && p1.size() == p2.size()) {
+                present = true;
+                for(int k=0; k<p1.size(); ++k) {
+                    if(p1[k] != p2[p1.size()-k-1]) {
+                        present = false;
+                        break;
+                    }
+                }
+            }
+            if(present)
+                break;
+        }
+        if(!present)
+            total_unique_paths.push_back({d1, p1});
+    }
+    total_unique_paths.sort();
+
+    _vec<string> res;
+    for(int i=0; i<min((int)total_unique_paths.size(), k); ++i)
+        res.push_back(total_unique_paths[i].second);
+
+    return res;
+}   
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -323,6 +428,7 @@ int main() {
     auto _start = chrono::high_resolution_clock::now();
     #endif
     /* ######################CODE_START################################ */
+
     int n, m;
     cin>>n>>m;
     graph g(n);
@@ -331,14 +437,25 @@ int main() {
         cin>>u>>v>>w;
         g.add_edge(u, v, w);
     }
-    int dest;
-    cin>>dest;
     // g.display();
 
+    int dest, k;
+    cin>>dest>>k;
+
+    /* dijkstra single source shortest path */
+    cout<<"dijkstra\n";
     _vec<string> paths = dijkstra_sssp(g, dest);
 
     for(int i=0; i<paths.size(); ++i)
         if(i!=dest) cout<<paths[i]<<"\n";
+    
+    /* top k shortest path */
+    cout<<"top "<<k<<" shortest paths\n";
+    _vec<string> ks = k_shortest_path(g, k);
+    cout<<ks.size()<<"\n";
+    for(int i=0; i<ks.size(); ++i)
+        cout<<ks[i]<<"\n";
+
 
     /* #######################CODE_END############################### */
     #ifdef DEBUG
