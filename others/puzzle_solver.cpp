@@ -51,13 +51,12 @@ class trie {
 };
 
 template<typename T>
-class vector {
-    T *container;
-    size_t cap;
-    size_t _size;
+class _vec {
+    T *container = nullptr;
+    size_t cap = 0;
+    size_t _size = 0;
 
-    void grow() {
-        size_t new_cap = cap + cap;
+    void grow(size_t new_cap) {
         T *new_container = new T[new_cap];
         for(int i=0; i<_size; ++i)
             new_container[i] = container[i];
@@ -91,29 +90,39 @@ class vector {
     }
 
     public:
-    vector(size_t size) {
+    _vec(size_t size) {
         this->_size = size;
         this->cap = size + size/2;
-        container = new T[cap];
+        container = new T[cap]();
     }
 
-    vector() {
+    _vec(size_t size, T def):_vec(size) {
+        for(int i=0; i<size; ++i)
+            container[i] = def;
+    }
+
+    _vec() {
         this->cap = 8;
-        this->container = new T[cap];
+        this->container = new T[cap]();
         this->_size = 0;
     }
 
     /* copy constructor */
-    vector(const vector<T> &vec) {
+    _vec(const _vec<T> &vec) {
+        this->cap = 8;
+        this->container = new T[8]();
         *this = vec;
     }
 
-    void operator=(const vector<T> &vec) {
-        this->cap = vec.cap;
-        this->container = new T[this->cap];
-        this->_size = vec._size;
-        for(int i=0; i<_size; ++i)
-            this->container[i] = vec.container[i];
+    void operator=(const _vec<T> &vec) {
+        this->_size = 0;
+        for(int i=0; i<vec._size; ++i) {
+            this->push_back(vec.container[i]);
+        }
+    }
+
+    ~_vec() {
+        delete[] container;
     }
 
     void resize(size_t sz, T def) {
@@ -125,18 +134,19 @@ class vector {
         }
     }
 
-    ~vector() {
-        delete[] container;
+    void reserve(size_t cap) {
+        if(cap > this->cap)
+            grow(cap);
     }
 
     void push_back(T val) {
         if(_size == cap)
-            grow();
+            grow(2 * cap);
         container[_size++] = val;
     }
 
     void pop_back() {
-        _size = min((size_t)0, _size-1);
+        _size = max((size_t)0, _size-1);
     }
 
     T &operator[](int i) {
@@ -154,6 +164,12 @@ class vector {
     void sort() {
         quick_sort(container, 0, _size-1);
     }
+
+    void display() {
+        for(int i=0; i<_size; ++i)
+            cout<<container[i]<<" ";
+        cout<<"\n";
+    }
 };
 
 
@@ -165,7 +181,7 @@ int r, c;
 int dir_i[] = {0,  0, 1, -1};
 int dir_j[] = {1, -1, 0,  0};
 
-void find(vector<string> &res, string &str, int i, int j, node *nd = t.get_root()) {
+void find(_vec<string> &res, string &str, int i, int j, node *nd = t.get_root()) {
     if(i<0 || i == r || j<0 || j == c || visited[i][j])
         return;
     int idx = grid[i][j] - 'a';
@@ -232,7 +248,7 @@ int main() {
         t.insert(str);
     }
     string temp = "";
-    vector<string> res;
+    _vec<string> res;
     for(int i=0; i<r; ++i)
         for(int j=0; j<c; ++j)
             find(res, temp, i, j);
